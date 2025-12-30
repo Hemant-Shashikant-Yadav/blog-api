@@ -7,6 +7,8 @@ import helmet from 'helmet';
 import config from '@/config';
 import limitter from '@/lib/express_rate_limit';
 
+import v1Routes from '@/routes/v1';
+
 const app = express();
 
 // Configure CORS options
@@ -49,12 +51,35 @@ app.use(helmet());
 // Rate limiting middleware
 app.use(limitter);
 
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Hello World',
-  });
-});
+// Initial, basic implementation
+// app.get('/', (req, res) => {
+//   res.json({
+//     message: 'Hello World',
+//   });
+// });
 
-app.listen(config.PORT, () => {
-  console.log(`Server is running: http://localhost:${config.PORT}`);
-});
+// app.listen(config.PORT, () => {
+//   console.log(`Server is running: http://localhost:${config.PORT}`);
+// });
+
+/*
+ * Immediatly Invoked Async Function Expression (IIFE) to start server
+ * - Defines the server configuration and starts the server
+ * - Handles errors during server startup
+ * - Gracefully handles errors in production environment
+*/
+(async () => {
+  try {
+    app.use('/api/v1', v1Routes);
+
+    app.listen(config.PORT, () => {
+      console.log(`Server is running: http://localhost:${config.PORT}`);
+    });
+  } catch (error) {
+    console.error('Error starting server:', error);
+
+    if (config.NODE_ENV === 'production') {
+      process.exit(1);
+    }
+  }
+})();
