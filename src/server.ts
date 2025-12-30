@@ -1,12 +1,16 @@
+// Node modules
 import express from 'express';
 import cors, { CorsOptions } from 'cors';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import helmet from 'helmet';
 
+// Custom modules
 import config from '@/config';
 import limitter from '@/lib/express_rate_limit';
+import { connectDB, disconnectDB } from '@/lib/mongoose';
 
+// Routes
 import v1Routes from '@/routes/v1';
 
 const app = express();
@@ -39,10 +43,11 @@ app.use(express.json());
 // extended: true allows for parsing of nested objects in form data
 app.use(express.urlencoded({ extended: true }));
 
+// Cookie parser
 app.use(cookieParser());
 
 // Compression middleware to compress responses
-// Threshold
+// Threshold: 1KB
 app.use(compression({ threshold: 1024 }));
 
 // Helmet middleware for security
@@ -67,9 +72,11 @@ app.use(limitter);
  * - Defines the server configuration and starts the server
  * - Handles errors during server startup
  * - Gracefully handles errors in production environment
-*/
+ */
 (async () => {
   try {
+    await connectDB();
+
     app.use('/api/v1', v1Routes);
 
     app.listen(config.PORT, () => {
@@ -83,3 +90,48 @@ app.use(limitter);
     }
   }
 })();
+
+/**
+ * Handel server shoutdown gracefully by disconnecting from db
+ *
+ * - Attempt to disconnect from the db before shutting down server.
+ * - Logs any errors that occur during the disconnection process.
+ * - Exits the process with a non-zero status code if an error occurs during disconnection.
+ * - Logs a message indicating that the server has been shut down gracefully.
+ * - Exits the process with a zero status code to indicate successful shutdown.
+ */
+
+const handelServerShutdown = async () => {
+  try {
+    await disconnectDB();
+
+    // Close the server
+    console.log('Server shut down gracefully');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during server shutdown:', error);
+    process.exit(1);
+  }
+};
+
+/**
+ * Listens for termination signals (SIGINT and SIGTERM) and gracefully shuts down the server.
+ * - `SIGTERM` is sent by the operating system when the process is terminated.
+ * - `SIGINT` is sent when the user presses `Ctrl+C` in the terminal.
+ * - Listens for the `SIGINT` signal and logs a message indicating that the server is shutting down.
+ * - Logs a message indicating that the server is shutting down.
+ * - Calls the handelServerShutdown function to handle server shutdown gracefully.
+ * - Logs a message indicating that the server has been shut down.
+ * - Exits the process with a zero status code to indicate successful shutdown.
+ */
+process.on('SIGINT', () => {
+  console.log('Server is shutting down...');
+  handelServerShutdown();
+  console.log('Server shut down');
+});
+
+process.on('SIGTERM', () => {
+  console.log('Server is shutting down...');
+  handelServerShutdown();
+  console.log('Server shut down');
+});
