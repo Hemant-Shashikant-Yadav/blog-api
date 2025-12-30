@@ -1,7 +1,36 @@
 import express from 'express';
+import cors, { CorsOptions } from 'cors';
 import config from '@/config';
 
 const app = express();
+
+// Configure CORS options
+const corsOptions: CorsOptions = {
+  origin(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    // if (!origin) {
+    //   return callback(null, true);
+    // }
+    if (
+      config.NODE_ENV === 'development' ||
+      !origin ||
+      config.WHITELISTED_DOMAINS.includes(origin)
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS Error: ${origin} not allowed by CORS`), false);
+      console.log(`CORS Error: ${origin} not allowed by CORS`);
+    }
+  },
+};
+
+app.use(cors(corsOptions));
+
+app.use(express.json());
+
+// Middleware to parse URL-encoded bodies (as sent by HTML forms)
+// extended: true allows for parsing of nested objects in form data
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
   res.json({
