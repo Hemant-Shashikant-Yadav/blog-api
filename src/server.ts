@@ -1,7 +1,14 @@
 import express from 'express';
+import config from '@/config';
 
 const app = express();
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Hello World',
+  });
+});
+
+app.listen(config.PORT, () => {
+  console.log(`Server is running: http://localhost:${config.PORT}`);
 });
