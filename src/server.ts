@@ -9,6 +9,7 @@ import helmet from 'helmet';
 import config from '@/config';
 import limitter from '@/lib/express_rate_limit';
 import { connectDB, disconnectDB } from '@/lib/mongoose';
+import { logger } from '@/lib/winstone';
 
 // Routes
 import v1Routes from '@/routes/v1';
@@ -30,7 +31,7 @@ const corsOptions: CorsOptions = {
       callback(null, true);
     } else {
       callback(new Error(`CORS Error: ${origin} not allowed by CORS`), false);
-      console.log(`CORS Error: ${origin} not allowed by CORS`);
+      logger.warn(`CORS Error: ${origin} not allowed by CORS`);
     }
   },
 };
@@ -80,10 +81,10 @@ app.use(limitter);
     app.use('/api/v1', v1Routes);
 
     app.listen(config.PORT, () => {
-      console.log(`Server is running: http://localhost:${config.PORT}`);
+      logger.info(`Server is running: http://localhost:${config.PORT}`);
     });
   } catch (error) {
-    console.error('Error starting server:', error);
+    logger.error('Error starting server:', error);
 
     if (config.NODE_ENV === 'production') {
       process.exit(1);
@@ -106,10 +107,10 @@ const handelServerShutdown = async () => {
     await disconnectDB();
 
     // Close the server
-    console.log('Server shut down gracefully');
+    logger.warn('Server shut down gracefully');
     process.exit(0);
   } catch (error) {
-    console.error('Error during server shutdown:', error);
+    logger.error('Error during server shutdown:', error);
     process.exit(1);
   }
 };
@@ -125,13 +126,13 @@ const handelServerShutdown = async () => {
  * - Exits the process with a zero status code to indicate successful shutdown.
  */
 process.on('SIGINT', () => {
-  console.log('Server is shutting down...');
+  logger.warn('Server is shutting down...');
   handelServerShutdown();
-  console.log('Server shut down');
+  logger.info('Server shut down');
 });
 
 process.on('SIGTERM', () => {
-  console.log('Server is shutting down...');
+  logger.warn('Server is shutting down...');
   handelServerShutdown();
-  console.log('Server shut down');
+  logger.info('Server shut down');
 });

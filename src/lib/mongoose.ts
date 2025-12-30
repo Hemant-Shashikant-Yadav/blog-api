@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import config from '@/config';
 
 import type { ConnectOptions } from 'mongoose';
+import { logger } from './winstone';
 
 const clientOptions: ConnectOptions = {
   dbName: config.DB_NAME,
@@ -31,7 +32,7 @@ export const connectDB = async (): Promise<void> => {
   }
   try {
     await mongoose.connect(config.MONGO_URI, clientOptions);
-    console.log('Connected to MongoDB', {
+    logger.info('Connected to MongoDB', {
       uri: config.MONGO_URI,
       options: clientOptions,
     });
@@ -39,7 +40,7 @@ export const connectDB = async (): Promise<void> => {
     if (error instanceof Error) {
       throw error;
     }
-    console.error('Error connecting to MongoDB:', error);
+    logger.error('Error connecting to MongoDB:', error);
   }
 };
 
@@ -54,7 +55,7 @@ export const connectDB = async (): Promise<void> => {
 export const disconnectDB = async (): Promise<void> => {
   try {
     await mongoose.connection.close();
-    console.log('Disconnected from MongoDB', {
+    logger.warn('Disconnected from MongoDB', {
       uri: config.MONGO_URI,
       options: clientOptions,
     });
@@ -62,6 +63,6 @@ export const disconnectDB = async (): Promise<void> => {
     if (error instanceof Error) {
       throw error;
     }
-    console.error('Error disconnecting from MongoDB:', error);
+    logger.error('Error disconnecting from MongoDB:', error);
   }
 };
