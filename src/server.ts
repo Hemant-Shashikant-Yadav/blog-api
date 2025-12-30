@@ -1,6 +1,11 @@
 import express from 'express';
 import cors, { CorsOptions } from 'cors';
+import cookieParser from 'cookie-parser';
+import compression from 'compression';
+import helmet from 'helmet';
+
 import config from '@/config';
+import limitter from '@/lib/express_rate_limit';
 
 const app = express();
 
@@ -31,6 +36,18 @@ app.use(express.json());
 // Middleware to parse URL-encoded bodies (as sent by HTML forms)
 // extended: true allows for parsing of nested objects in form data
 app.use(express.urlencoded({ extended: true }));
+
+app.use(cookieParser());
+
+// Compression middleware to compress responses
+// Threshold
+app.use(compression({ threshold: 1024 }));
+
+// Helmet middleware for security
+app.use(helmet());
+
+// Rate limiting middleware
+app.use(limitter);
 
 app.get('/', (req, res) => {
   res.json({
