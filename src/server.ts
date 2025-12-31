@@ -4,6 +4,10 @@ import cors, { CorsOptions } from 'cors';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
+import path from 'path';
+
 
 // Custom modules
 import config from '@/config';
@@ -56,6 +60,40 @@ app.use(helmet());
 
 // Rate limiting middleware
 app.use(limitter);
+
+
+/**
+ * Swagger/OpenAPI configuration
+ * You can document routes with JSDoc annotations under src/routes/**.ts
+ */
+const swaggerOptions: swaggerJsdoc.Options = {
+  definition: {
+    openapi: '3.0.3',
+    info: {
+      title: 'My Express API (TypeScript)',
+      version: '1.0.0',
+      description: 'API documentation generated with swagger-jsdoc & swagger-ui-express'
+    },
+    servers: [{ url: `http://localhost:${config.PORT}` }],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
+        }
+      }
+    },
+    security: [{ bearerAuth: [] }] // apply globally (optional)
+  },
+  apis: [path.join(__dirname, '/routes/**/*.ts')], // scan route files for @swagger JSDoc
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+// Swagger UI route
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 // Initial, basic implementation
 // app.get('/', (req, res) => {
