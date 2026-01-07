@@ -1,13 +1,16 @@
 import { logger } from '@/lib/winstone';
 import config from '@/config';
+import { generateAccessToken, generateRefreshToken } from '@/lib/jwt';
 
 // Models
 import User from '@/models/user';
+import Token from '@/models/token';
 
 // Types
 import { Request, Response } from 'express';
 import user, { IUser } from '@/models/user';
 import { generateUsername } from '@/utils';
+import token from '@/models/token';
 
 type UserData = Pick<IUser, 'email' | 'password' | 'role'>;
 
@@ -37,15 +40,36 @@ const register = async (req: Request, res: Response) => {
     });
 
     // Geneate access token and refresh token
+    const accessToken = generateAccessToken(newUser._id);
+    const refreshToken = generateRefreshToken(newUser._id);
 
-    res.status(200).json({
+    // Store refresh token in db
+    await Token.create({
+      token: refreshToken,
+      userId: newUser._id,
+    });
+    logger.info('Refresh token stored in database', {
+      userId: newUser._id,
+      token: refreshToken,
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: config.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    res.status(201).json({
       message: 'User registered successfully',
       user: {
         username: newUser.username,
         email: newUser.email,
         role: newUser.role,
       },
+      accessToken,
     });
+
+    logger.info('User registered successfully', { userId: newUser._id });
   } catch (error) {
     logger.error('Error during user registration:', error);
     res.status(500).json({

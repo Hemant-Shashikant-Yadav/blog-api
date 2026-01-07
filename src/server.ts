@@ -8,7 +8,6 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import path from 'path';
 
-
 // Custom modules
 import config from '@/config';
 import limitter from '@/lib/express_rate_limit';
@@ -61,7 +60,6 @@ app.use(helmet());
 // Rate limiting middleware
 app.use(limitter);
 
-
 /**
  * Swagger/OpenAPI configuration
  * You can document routes with JSDoc annotations under src/routes/**.ts
@@ -72,7 +70,8 @@ const swaggerOptions: swaggerJsdoc.Options = {
     info: {
       title: 'My Express API (TypeScript)',
       version: '1.0.0',
-      description: 'API documentation generated with swagger-jsdoc & swagger-ui-express'
+      description:
+        'API documentation generated with swagger-jsdoc & swagger-ui-express',
     },
     servers: [{ url: `http://localhost:${config.PORT}` }],
     components: {
@@ -80,11 +79,16 @@ const swaggerOptions: swaggerJsdoc.Options = {
         bearerAuth: {
           type: 'http',
           scheme: 'bearer',
-          bearerFormat: 'JWT'
-        }
-      }
+          bearerFormat: 'JWT',
+        },
+        cookieAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'refreshToken', // replace with your actual cookie name
+        },
+      },
     },
-    security: [{ bearerAuth: [] }] // apply globally (optional)
+    security: [{ bearerAuth: [] }], // apply globally (optional)
   },
   apis: [path.join(__dirname, '/routes/**/*.ts')], // scan route files for @swagger JSDoc
 };
@@ -92,8 +96,25 @@ const swaggerOptions: swaggerJsdoc.Options = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Swagger UI route
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      withCredentials: true,
+      requestInterceptor: (req: any) => {
+        console.log('Request cookies:', document.cookie);
+        return req;
+      },
+      responseInterceptor: (res: any) => {
+        if (res.headers['set-cookie']) {
+          console.log('Set-Cookie:', res.headers['set-cookie']);
+        }
+        return res;
+      },
+    },
+  }),
+);
 
 // Initial, basic implementation
 // app.get('/', (req, res) => {
