@@ -37,6 +37,7 @@ const corsOptions: CorsOptions = {
       logger.warn(`CORS Error: ${origin} not allowed by CORS`);
     }
   },
+  credentials: true, // Enable credentials for cookies
 };
 
 app.use(cors(corsOptions));
