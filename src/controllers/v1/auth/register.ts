@@ -10,12 +10,21 @@ import Token from '@/models/token';
 import { Request, Response } from 'express';
 import user, { IUser } from '@/models/user';
 import { generateUsername } from '@/utils';
-import token from '@/models/token';
 
 type UserData = Pick<IUser, 'email' | 'password' | 'role'>;
 
 const register = async (req: Request, res: Response) => {
   const { email, password, role } = req.body as UserData;
+
+  if (role === 'admin' && !config.WHITELIST_ADMINS_MAIL.includes(email)) {
+    logger.warn('Forbidden: Only whitelisted admins can register as admin', {
+      email,
+    });
+    return res.status(403).json({
+      code: 'AuthorizationError',
+      message: 'Forbidden: Only whitelisted admins can register as admin',
+    });
+  }
   try {
     // const userData: UserData = req.body;
 

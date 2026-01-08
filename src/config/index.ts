@@ -16,12 +16,17 @@ const config = {
   DB_PASSWORD: process.env.DB_PASSWORD,
   DB_HOST: process.env.DB_HOST,
   DB_PORT: process.env.DB_PORT,
+  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET!,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET!,
   ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY as ms.StringValue,
   REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY as ms.StringValue,
-
-  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+  WHITELIST_ADMINS_MAIL: [
+    'admin1@example.com',
+    'admin2@example.com',
+    'admin3@example.com',
+    'admin4@example.com',
+  ],
 };
 
 export default config;

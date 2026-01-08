@@ -1,11 +1,14 @@
 import { Router } from 'express';
+import { body } from 'express-validator';
 
 //Controller
-
-// Middlewares
 import register from '@/controllers/v1/auth/register';
 
+// Middlewares
+import validationError from '@/middlewares/validationError';
+
 // Models
+import User from '@/models/user';
 
 const router = Router();
 
@@ -58,6 +61,37 @@ const router = Router();
  *       409:
  *         description: User already exists
  */
-router.post('/register', register)
+// router.post('/register', register)
+router.post(
+  '/register',
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Email is not valid')
+    .isLength({ max: 50 })
+    .withMessage('Email must be less than 50 characters')
+    .custom(async (email: string) => {
+      const user = await User.findOne({ email });
+      if (user) {
+        throw new Error('User already exists');
+      }
+    }),
+  body('password')
+    .trim()
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long'),
+  body('role')
+    .trim()
+    .notEmpty()
+    .withMessage('Role is required')
+    .isIn(['admin', 'user'])
+    .withMessage('Role must be either admin or user'),
+  validationError,
+  register,
+);
 
 export default router;
