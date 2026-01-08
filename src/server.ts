@@ -81,12 +81,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
-        },
-        cookieAuth: {
-          type: 'apiKey',
-          in: 'cookie',
-          name: 'refreshToken', // replace with your actual cookie name
-        },
+        }
       },
     },
     security: [{ bearerAuth: [] }], // apply globally (optional)

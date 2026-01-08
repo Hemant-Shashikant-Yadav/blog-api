@@ -12,6 +12,8 @@ import validationError from '@/middlewares/validationError';
 
 // Models
 import User from '@/models/user';
+import logout from '@/controllers/v1/auth/logout';
+import authenticate from '@/middlewares/authenticate';
 
 const router = Router();
 
@@ -281,4 +283,56 @@ router.post('/login',
  *                   example: "ServerError"
  */
 router.post('/refresh-token', cookie('refreshToken').notEmpty().withMessage("Refresh token required").isJWT().withMessage("Invalid refresh token"), validationError, refreshToken)
+
+/**
+ * @swagger
+ * /api/v1/auth/logout:
+ *   get:
+ *     summary: Logout user
+ *     description: Logout user by clearing refresh token cookie and removing token from database
+ *     tags:
+ *       - Authentication
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: User logged out successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User logged out successfully"
+ *       401:
+ *         description: Unauthorized - No refresh token provided
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "No refresh token provided"
+ *                 code:
+ *                   type: string
+ *                   example: "NoRefreshToken"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal Server Error"
+ *                 code:
+ *                   type: string
+ *                   example: "ServerError"
+ */
+router.get('/logout', authenticate , logout);
+
 export default router;
