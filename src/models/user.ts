@@ -11,6 +11,7 @@ export interface IUser {
   socialLinks?: {
     website?: string;
     facebook?: string;
+    linkedin?: string;
     instagram?: string;
     x?: string;
     youtube?: string;
