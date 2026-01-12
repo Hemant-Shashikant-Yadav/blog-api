@@ -9,6 +9,7 @@ import user from "@/models/user";
 
 import getCurrentUser from "@/controllers/v1/user/get_current_user";
 import updateCurrentUser from "@/controllers/v1/user/update_current_user";
+import deleteCurrentUser from "@/controllers/v1/user/delete_current_user";
 
 const router = Router();
 
@@ -107,6 +108,99 @@ const router = Router();
  */
 router.get('/current', authenticate, authorize(['admin', 'user']), getCurrentUser)
 
+/**
+ * @swagger
+ * /api/v1/users/current:
+ *   put:
+ *     summary: Update current user
+ *     description: Update the current authenticated user's information
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 20
+ *                 description: User's username (optional)
+ *                 example: "johndoe"
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User updated successfully"
+ *                 code:
+ *                   type: string
+ *                   example: "Success"
+ *       400:
+ *         description: Bad request - validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed"
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *       401:
+ *         description: Unauthorized - Invalid or missing access token
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *       500:
+ *         description: Internal server error
+ */
 router.put('/current', authenticate, authorize(['admin', 'user']), body('username').optional().trim().isLength({ min: 3, max: 20 }).withMessage('Username must'), updateCurrentUser)
+
+/**
+ * @swagger
+ * /api/v1/users/current:
+ *   delete:
+ *     summary: Delete current user
+ *     description: Delete the current authenticated user's account
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User deleted successfully"
+ *                 code:
+ *                   type: string
+ *                   example: "Success"
+ *       401:
+ *         description: Unauthorized - Invalid or missing access token
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete('/current', authenticate, authorize(['admin', 'user']), body('username').optional().trim().isLength({ min: 3, max: 20 }).withMessage('Username must'), deleteCurrentUser)
 
 export default router
