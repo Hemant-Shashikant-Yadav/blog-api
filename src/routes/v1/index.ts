@@ -4,6 +4,7 @@ const router = Router();
 
 import authRoutes from '@/routes/v1/auth';
 import userRoutes from '@/routes/v1/users';
+import blogRoutes from '@/routes/v1/blog';
 
 /**
  * @swagger
@@ -45,5 +46,6 @@ router.get('/', (req, res) => {
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
+router.use('/blog', blogRoutes);
 
 export default router;
